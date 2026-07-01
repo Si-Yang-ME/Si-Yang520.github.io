@@ -137,6 +137,7 @@
         const KOMI = 7.5;
         const AI_DEPTH = 3;
         const WIN_SCORE = 1000000;
+        const AI_TIME_LIMIT_MS = 800; // AI思考时间限制（毫秒）
 
         // ---------- DOM refs ----------
         const canvas = document.getElementById('boardCanvas');
@@ -372,12 +373,12 @@
             return score;
         }
 
-        // ---------- Alpha-Beta 剪枝 (深度3) ----------
-        function alphaBeta(b, depth, alpha, beta, isMaximizing, color) {
+        // ---------- Alpha-Beta 剪枝 (深度3) 带时间限制 ----------
+        function alphaBetaWithTime(b, depth, alpha, beta, isMaximizing, color, startTime) {
             const opponent = color === BLACK ? WHITE : BLACK;
             const moves = getLegalMoves(b, color);
-            // 无合法落子（pass） 或 深度为0
-            if (depth === 0 || moves.length === 0) {
+            // 无合法落子（pass） 或 深度为0 或 超时
+            if (depth === 0 || moves.length === 0 || (Date.now() - startTime) > AI_TIME_LIMIT_MS) {
                 return { score: evaluateBoard(b, color), move: null };
             }
 
@@ -392,10 +393,14 @@
             if (isMaximizing) {
                 let maxEval = -Infinity;
                 for (const [r, c] of moves) {
+                    // 每次循环检查是否超时
+                    if ((Date.now() - startTime) > AI_TIME_LIMIT_MS) {
+                        break;
+                    }
                     const newBoard = cloneBoard(b);
                     const result = placeStone(newBoard, r, c, color);
                     if (!result.success) continue;
-                    const evalResult = alphaBeta(newBoard, depth-1, alpha, beta, false, opponent);
+                    const evalResult = alphaBetaWithTime(newBoard, depth-1, alpha, beta, false, opponent, startTime);
                     const score = evalResult.score;
                     if (score > maxEval) {
                         maxEval = score;
@@ -408,10 +413,13 @@
             } else {
                 let minEval = Infinity;
                 for (const [r, c] of moves) {
+                    if ((Date.now() - startTime) > AI_TIME_LIMIT_MS) {
+                        break;
+                    }
                     const newBoard = cloneBoard(b);
                     const result = placeStone(newBoard, r, c, color);
                     if (!result.success) continue;
-                    const evalResult = alphaBeta(newBoard, depth-1, alpha, beta, true, opponent);
+                    const evalResult = alphaBetaWithTime(newBoard, depth-1, alpha, beta, true, opponent, startTime);
                     const score = evalResult.score;
                     if (score < minEval) {
                         minEval = score;
@@ -424,7 +432,7 @@
             }
         }
 
-        // AI 决策 (返回落子坐标或null表示pass)
+        // AI 决策 (返回落子坐标或null表示pass) 带时间限制
         function aiMove(b, color) {
             const moves = getLegalMoves(b, color);
             if (moves.length === 0) return null;
@@ -433,7 +441,8 @@
                 // 随机选一个
                 return moves[Math.floor(Math.random() * moves.length)];
             }
-            const result = alphaBeta(b, AI_DEPTH, -Infinity, Infinity, true, color);
+            const startTime = Date.now();
+            const result = alphaBetaWithTime(b, AI_DEPTH, -Infinity, Infinity, true, color, startTime);
             return result.move;
         }
 
