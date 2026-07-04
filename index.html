@@ -1,841 +1,474 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>安全无痕聊天 - SecureChat</title>
-    <style>
-        /* ========== 全局样式 ========== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>北京时间 · 毫秒同步</title>
+  <style>
+    /* ----- 全局重置与字体 ----- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 30%, #1a1f2e, #0b0d14);
+      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+      padding: 1.5rem;
+      transition: background 0.2s ease;
+    }
 
-        .container {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            width: 100%;
-            max-width: 600px;
-            padding: 30px;
-            color: #e0e0e0;
-        }
+    /* ----- 主卡片：玻璃质感容器 ----- */
+    .clock-container {
+      width: 100%;
+      max-width: 700px;
+      background: rgba(18, 22, 33, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-radius: 3.5rem;
+      padding: 3rem 2rem;
+      box-shadow: 0 30px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      transition: all 0.3s ease;
+    }
 
-        /* ========== 头部区域 ========== */
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
+    /* ----- 时间显示区域 ----- */
+    .time-display {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: clamp(3.5rem, 15vw, 7rem);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #eef5ff;
+      text-shadow: 0 0 20px rgba(77, 150, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.6);
+      background: linear-gradient(180deg, #ffffff 0%, #c8d9ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 12px #3f6ec6);
+      line-height: 1.2;
+      text-align: center;
+      word-break: break-word;
+    }
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #00b4db, #0083b0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
+    /* 毫秒部分可选显示（保持内部精度，视觉可隐藏） */
+    .milliseconds {
+      font-size: 0.35em;
+      vertical-align: super;
+      margin-left: 0.15em;
+      color: #9bb8ff;
+      text-shadow: 0 0 8px #1e3b8a;
+      letter-spacing: 0;
+    }
 
-        .user-id-display {
-            background: rgba(0, 180, 219, 0.15);
-            border: 1px solid rgba(0, 180, 219, 0.3);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
+    /* ----- 状态栏 ----- */
+    .status-area {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 1.2rem 2rem;
+      font-size: 0.95rem;
+      color: #b4c2e0;
+      background: rgba(12, 15, 24, 0.5);
+      padding: 0.9rem 2rem;
+      border-radius: 3rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: fit-content;
+      max-width: 100%;
+    }
 
-        .user-id-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #888;
-            margin-bottom: 5px;
-        }
+    .sync-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-        .user-id-value {
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            word-break: break-all;
-            color: #00b4db;
-            user-select: all;
-            cursor: pointer;
-        }
+    .sync-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #2ecc71;
+      box-shadow: 0 0 12px #2ecc71;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
 
-        /* ========== 连接区域 ========== */
-        .connection-panel {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
+    .sync-dot.warning {
+      background: #f39c12;
+      box-shadow: 0 0 12px #f39c12;
+    }
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+    .sync-dot.error {
+      background: #e74c3c;
+      box-shadow: 0 0 12px #e74c3c;
+    }
 
-        .input-group input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
+    .last-sync-text {
+      font-weight: 400;
+      opacity: 0.9;
+    }
 
-        .input-group input:focus {
-            border-color: #00b4db;
-        }
+    .offset-info {
+      font-family: monospace;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 0.25rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.85rem;
+      color: #ccd9ff;
+    }
 
-        .input-group input::placeholder {
-            color: #666;
-        }
+    /* 移动端优化 */
+    @media (max-width: 500px) {
+      .clock-container {
+        padding: 2.5rem 1.2rem;
+        border-radius: 2.5rem;
+      }
 
-        /* ========== 按钮样式 ========== */
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+      .status-area {
+        flex-direction: column;
+        gap: 0.8rem;
+        text-align: center;
+        padding: 0.8rem 1.5rem;
+      }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #00b4db, #0083b0);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(0, 180, 219, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 180, 219, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ff416c, #ff4b2b);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* ========== 聊天区域 ========== */
-        .chat-area {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: rgba(0, 180, 219, 0.1);
-            padding: 15px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-header h3 {
-            font-size: 16px;
-            color: #00b4db;
-        }
-
-        .messages-container {
-            height: 350px;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* 自定义滚动条 */
-        .messages-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .messages-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.5;
-            word-break: break-word;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.sent {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #00b4db, #0083b0);
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.received {
-            align-self: flex-start;
-            background: rgba(255, 255, 255, 0.08);
-            color: #e0e0e0;
-            border-bottom-left-radius: 4px;
-        }
-
-        .message.system {
-            align-self: center;
-            background: rgba(255, 255, 255, 0.03);
-            color: #888;
-            font-size: 12px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            max-width: 90%;
-            text-align: center;
-        }
-
-        .message-input-area {
-            display: flex;
-            gap: 10px;
-            padding: 15px 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.15);
-        }
-
-        .message-input-area input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 25px;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .message-input-area input:focus {
-            border-color: #00b4db;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status-indicator.online {
-            background: #00ff88;
-            box-shadow: 0 0 10px #00ff88;
-        }
-
-        .status-indicator.connecting {
-            background: #ffcc00;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .hidden {
-            display: none !important;
-        }
-    </style>
+      .time-display {
+        font-size: clamp(3rem, 12vw, 5rem);
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 头部 -->
-        <div class="header">
-            <h1>🔒 安全无痕聊天</h1>
-            <p style="color: #888; font-size: 13px;">端到端加密 · 不留痕迹</p>
-            <div class="user-id-display">
-                <div class="user-id-label">您的ID <span style="font-size:10px;">(点击复制)</span></div>
-                <div class="user-id-value" id="userIdDisplay" onclick="copyUserId()">连接中...</div>
-            </div>
-        </div>
-
-        <!-- 连接面板 -->
-        <div class="connection-panel" id="connectionPanel">
-            <div class="input-group">
-                <input type="text" id="targetIdInput" placeholder="输入对方的ID...">
-                <button class="btn btn-primary" id="startChatBtn" onclick="startChat()">开始聊天</button>
-            </div>
-            <p style="font-size: 12px; color: #666; margin-top: 5px;">
-                <span class="status-indicator" id="connectionStatus"></span>
-                <span id="connectionStatusText">正在连接服务器...</span>
-            </p>
-        </div>
-
-        <!-- 聊天面板 -->
-        <div class="chat-area hidden" id="chatPanel">
-            <div class="chat-header">
-                <h3>💬 与 <span id="peerIdDisplay">---</span> 的对话</h3>
-                <button class="btn btn-danger" style="padding: 8px 16px; font-size: 12px;" onclick="quitChat()">
-                    退出聊天
-                </button>
-            </div>
-            <div class="messages-container" id="messagesContainer">
-                <div class="message system">聊天已加密，等待密钥交换...</div>
-            </div>
-            <div class="message-input-area">
-                <input type="text" id="messageInput" placeholder="输入消息..." onkeypress="handleKeyPress(event)">
-                <button class="btn btn-primary" style="padding: 12px 20px;" onclick="sendMessage()">发送</button>
-            </div>
-        </div>
+  <div class="clock-container">
+    <!-- 时间展示区（可内部添加毫秒显示，但默认仅显示到秒，保持简洁） -->
+    <div id="clockDisplay" class="time-display" aria-live="polite" aria-label="北京时间">
+      --:--:--
     </div>
 
-    <script>
-        // ==================== 全局状态 ====================
+    <!-- 状态与同步信息 -->
+    <div class="status-area">
+      <div class="sync-indicator">
+        <span id="syncDot" class="sync-dot" title="同步状态"></span>
+        <span id="syncStatusText">同步中…</span>
+      </div>
+      <div class="last-sync-text" id="lastSyncLabel">上次同步：--</div>
+      <div class="offset-info" id="offsetDisplay">偏移 0ms</div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      "use strict";
+
+      // ---------- DOM 元素 ----------
+      const clockEl = document.getElementById('clockDisplay');
+      const syncDotEl = document.getElementById('syncDot');
+      const syncStatusTextEl = document.getElementById('syncStatusText');
+      const lastSyncLabelEl = document.getElementById('lastSyncLabel');
+      const offsetDisplayEl = document.getElementById('offsetDisplay');
+
+      // ---------- 核心变量 ----------
+      // offset: 本地时间与北京时间的差值 (毫秒)  北京时间 = Date.now() + offset
+      let offset = 0;                 
+      // 定时器ID
+      let displayTimer = null;
+      let syncTimer = null;
+      // 同步间隔：5分钟 (300,000ms)
+      const SYNC_INTERVAL = 300000;   
+      // 显示刷新间隔：为了视觉平滑且内部毫秒校正，使用约30ms刷新 (≈33.3fps)
+      const DISPLAY_REFRESH_MS = 30;  
+
+      // 网络请求超时时间 (毫秒)
+      const FETCH_TIMEOUT = 6000;
+
+      // 记录上次成功同步的时间戳 (用于显示)
+      let lastSuccessfulSyncTime = null;
+      // 标记是否正在进行同步 (防止并发)
+      let isSyncing = false;
+
+      // ---------- 工具函数：格式化时间 ----------
+      function formatBeijingTime(date) {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        // 毫秒部分用于内部展示（可选）但主要显示HH:MM:SS
+        return `${hours}:${minutes}:${seconds}`;
+      }
+
+      // 获取完整毫秒字符串 (用于显示细微偏移，这里仅内部使用，也可附加显示)
+      function getMillisecondsStr(date) {
+        return String(date.getMilliseconds()).padStart(3, '0');
+      }
+
+      // ---------- 更新UI显示 ----------
+      function updateDisplay() {
+        if (!clockEl) return;
         
-        // WebSocket连接对象
-        let ws = null;
+        // 基于当前本地时间 + 偏移量计算北京时间
+        const nowBeijing = new Date(Date.now() + offset);
+        const timeString = formatBeijingTime(nowBeijing);
         
-        // 用户自身信息
-        let myUserId = null;
-        let myPrivateKey = null;  // CryptoKey对象
-        let myPublicKey = null;   // CryptoKey对象
-        let myPublicKeyPem = null; // PEM格式公钥字符串
+        // 可选：在秒后面附加毫秒显示 (为保持清晰，使用小字号span)
+        // 这里动态构建HTML以包含毫秒，但不影响主视觉清晰度
+        const ms = getMillisecondsStr(nowBeijing);
+        clockEl.innerHTML = `${timeString}<span class="milliseconds">.${ms}</span>`;
         
-        // 聊天对象信息
-        let peerId = null;
-        let peerPublicKey = null;  // CryptoKey对象
-        let aesKey = null;         // CryptoKey对象（AES-GCM）
+        // 更新偏移显示
+        if (offsetDisplayEl) {
+          const offsetMs = offset;
+          offsetDisplayEl.textContent = `偏移 ${offsetMs >= 0 ? '+' : ''}${offsetMs}ms`;
+        }
+      }
+
+      // ---------- 更新状态UI (同步成功/失败/进行中) ----------
+      function setSyncStatus(status, message, lastSyncDate = null) {
+        if (!syncDotEl || !syncStatusTextEl) return;
         
-        // ==================== Web Crypto API 封装 ====================
+        // 移除所有状态类
+        syncDotEl.classList.remove('warning', 'error');
         
-        /**
-         * 生成RSA-2048密钥对
-         * 使用Web Crypto API，密钥不可导出为明文（安全）
-         */
-        async function generateRSAKeyPair() {
-            const keyPair = await window.crypto.subtle.generateKey(
-                {
-                    name: "RSA-OAEP",
-                    modulusLength: 2048,
-                    publicExponent: new Uint8Array([1, 0, 1]), // 65537
-                    hash: "SHA-256"
-                },
-                true, // 可导出
-                ["encrypt", "decrypt"]
-            );
-            return keyPair;
+        switch (status) {
+          case 'success':
+            syncDotEl.classList.add('success'); // 默认绿色
+            syncStatusTextEl.textContent = message || '已同步';
+            break;
+          case 'syncing':
+            syncDotEl.classList.add('warning');
+            syncStatusTextEl.textContent = message || '同步中…';
+            break;
+          case 'error':
+            syncDotEl.classList.add('error');
+            syncStatusTextEl.textContent = message || '同步失败';
+            break;
+          default:
+            syncStatusTextEl.textContent = message || '未知';
         }
         
-        /**
-         * 导出公钥为PEM格式（用于交换）
-         */
-        async function exportPublicKeyToPem(publicKey) {
-            const exported = await window.crypto.subtle.exportKey(
-                "spki",
-                publicKey
-            );
-            const exportedAsBase64 = btoa(String.fromCharCode(...new Uint8Array(exported)));
-            // 格式化为PEM
-            const pemHeader = "-----BEGIN PUBLIC KEY-----";
-            const pemFooter = "-----END PUBLIC KEY-----";
-            let pemBody = "";
-            for (let i = 0; i < exportedAsBase64.length; i += 64) {
-                pemBody += exportedAsBase64.slice(i, i + 64) + "\n";
-            }
-            return pemHeader + "\n" + pemBody + pemFooter;
+        // 更新上次同步时间显示
+        if (lastSyncLabelEl) {
+          if (lastSuccessfulSyncTime) {
+            const date = new Date(lastSuccessfulSyncTime);
+            const timeStr = date.toLocaleTimeString('zh-CN', { hour12: false });
+            lastSyncLabelEl.textContent = `上次同步：${timeStr}`;
+          } else if (lastSyncDate) {
+            const date = new Date(lastSyncDate);
+            const timeStr = date.toLocaleTimeString('zh-CN', { hour12: false });
+            lastSyncLabelEl.textContent = `上次同步：${timeStr}`;
+          } else {
+            lastSyncLabelEl.textContent = `上次同步：--`;
+          }
+        }
+      }
+
+      // ---------- 核心：从网络API获取北京时间并计算偏移 ----------
+      async function fetchBeijingTimeAndSync() {
+        if (isSyncing) {
+          console.log('同步正在进行中，跳过本次请求');
+          return;
         }
         
-        /**
-         * 从PEM字符串导入公钥
-         */
-        async function importPublicKeyFromPem(pem) {
-            // 移除PEM头尾
-            const pemBody = pem
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replace(/\s/g, "");
-            const binaryDer = Uint8Array.from(atob(pemBody), c => c.charCodeAt(0));
-            return await window.crypto.subtle.importKey(
-                "spki",
-                binaryDer,
-                {
-                    name: "RSA-OAEP",
-                    hash: "SHA-256"
-                },
-                true,
-                ["encrypt"]
-            );
-        }
+        isSyncing = true;
+        setSyncStatus('syncing', '同步中…');
         
-        /**
-         * RSA-OAEP加密
-         */
-        async function rsaEncrypt(data, publicKey) {
-            const encoded = new TextEncoder().encode(data);
-            const encrypted = await window.crypto.subtle.encrypt(
-                { name: "RSA-OAEP" },
-                publicKey,
-                encoded
-            );
-            return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
-        }
+        // 记录请求开始时的本地时间 (用于计算网络耗时的一半作为粗略补偿，可选)
+        const requestStartLocal = Date.now();
         
-        /**
-         * RSA-OAEP解密
-         */
-        async function rsaDecrypt(encryptedBase64, privateKey) {
-            const encrypted = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
-            const decrypted = await window.crypto.subtle.decrypt(
-                { name: "RSA-OAEP" },
-                privateKey,
-                encrypted
-            );
-            return new TextDecoder().decode(decrypted);
-        }
+        // 使用两个备选API提高稳定性 (优先使用worldtimeapi，失败后尝试timeapi)
+        const apiUrls = [
+          'https://worldtimeapi.org/api/timezone/Asia/Shanghai',
+          'https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai'
+        ];
         
-        /**
-         * 生成AES-256-GCM密钥
-         */
-        async function generateAESKey() {
-            return await window.crypto.subtle.generateKey(
-                {
-                    name: "AES-GCM",
-                    length: 256
-                },
-                true, // 可导出
-                ["encrypt", "decrypt"]
-            );
-        }
+        let success = false;
+        let networkDatetime = null; // 存储从API解析到的北京时间的Date对象
         
-        /**
-         * 导出AES密钥为Base64（用于交换）
-         */
-        async function exportAESKey(key) {
-            const exported = await window.crypto.subtle.exportKey("raw", key);
-            return btoa(String.fromCharCode(...new Uint8Array(exported)));
-        }
-        
-        /**
-         * 从Base64导入AES密钥
-         */
-        async function importAESKey(base64Key) {
-            const keyData = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
-            return await window.crypto.subtle.importKey(
-                "raw",
-                keyData,
-                { name: "AES-GCM" },
-                true,
-                ["encrypt", "decrypt"]
-            );
-        }
-        
-        /**
-         * AES-GCM加密消息
-         */
-        async function aesEncrypt(plaintext, key) {
-            const encoded = new TextEncoder().encode(plaintext);
-            // 生成随机IV（Nonce）- 96位
-            const iv = window.crypto.getRandomValues(new Uint8Array(12));
-            const encrypted = await window.crypto.subtle.encrypt(
-                {
-                    name: "AES-GCM",
-                    iv: iv
-                },
-                key,
-                encoded
-            );
-            return {
-                ciphertext: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
-                nonce: btoa(String.fromCharCode(...iv))
-            };
-        }
-        
-        /**
-         * AES-GCM解密消息
-         */
-        async function aesDecrypt(ciphertextBase64, nonceBase64, key) {
-            const ciphertext = Uint8Array.from(atob(ciphertextBase64), c => c.charCodeAt(0));
-            const nonce = Uint8Array.from(atob(nonceBase64), c => c.charCodeAt(0));
-            const decrypted = await window.crypto.subtle.decrypt(
-                {
-                    name: "AES-GCM",
-                    iv: nonce
-                },
-                key,
-                ciphertext
-            );
-            return new TextDecoder().decode(decrypted);
-        }
-        
-        // ==================== WebSocket连接 ====================
-        
-        /**
-         * 建立WebSocket连接并初始化身份
-         * 注意：不发送任何用户标识信息
-         */
-        async function connectWebSocket() {
-            updateConnectionStatus("connecting", "正在连接服务器...");
+        // 尝试每个API
+        for (const url of apiUrls) {
+          if (success) break;
+          
+          try {
+            // 创建可中断的fetch (超时控制)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
             
-            return new Promise((resolve, reject) => {
-                // 连接到WebSocket服务器
-                // 在生产环境中应使用 wss:// 并配置SSL
-                ws = new WebSocket(`ws://${window.location.hostname}:8765`);
-                
-                ws.onopen = async () => {
-                    updateConnectionStatus("online", "已连接到服务器，等待分配ID...");
-                    // 连接建立后，预先生成RSA密钥对
-                    try {
-                        const keyPair = await generateRSAKeyPair();
-                        myPrivateKey = keyPair.privateKey;
-                        myPublicKey = keyPair.publicKey;
-                        myPublicKeyPem = await exportPublicKeyToPem(myPublicKey);
-                    } catch (error) {
-                        console.error("密钥生成失败:", error);
-                        reject(error);
-                    }
-                };
-                
-                ws.onmessage = async (event) => {
-                    try {
-                        const message = JSON.parse(event.data);
-                        await handleServerMessage(message);
-                    } catch (error) {
-                        console.error("消息解析失败:", error);
-                    }
-                };
-                
-                ws.onclose = () => {
-                    updateConnectionStatus("offline", "连接已断开");
-                    // 清除所有敏感数据
-                    clearAllData();
-                    showSystemMessage("与服务器的连接已断开");
-                };
-                
-                ws.onerror = (error) => {
-                    console.error("WebSocket错误:", error);
-                    updateConnectionStatus("offline", "连接错误");
-                    reject(error);
-                };
-                
-                // 设置超时
-                setTimeout(() => {
-                    if (!myUserId) {
-                        reject(new Error("连接超时"));
-                    } else {
-                        resolve();
-                    }
-                }, 10000);
+            const response = await fetch(url, { 
+              signal: controller.signal,
+              cache: 'no-store' 
             });
-        }
-        
-        // ==================== 消息处理 ====================
-        
-        /**
-         * 处理来自服务器的消息
-         */
-        async function handleServerMessage(message) {
-            const { type, data } = message;
+            clearTimeout(timeoutId);
             
-            switch (type) {
-                case "id_assigned":
-                    // 接收分配的ID
-                    myUserId = data.user_id;
-                    document.getElementById("userIdDisplay").textContent = myUserId;
-                    updateConnectionStatus("online", "已上线 - 您可以开始聊天");
-                    break;
-                    
-                case "chat_init":
-                    // 聊天初始化 - 交换公钥
-                    peerId = data.peer_id;
-                    document.getElementById("peerIdDisplay").textContent = peerId.substring(0, 8) + "...";
-                    showChatPanel();
-                    showSystemMessage(`正在与 ${peerId.substring(0, 8)}... 建立加密连接`);
-                    
-                    // 导入对方的公钥
-                    peerPublicKey = await importPublicKeyFromPem(data.peer_public_key);
-                    
-                    // 生成AES会话密钥
-                    aesKey = await generateAESKey();
-                    const exportedAESKey = await exportAESKey(aesKey);
-                    
-                    // 用对方公钥加密AES密钥并发送
-                    const encryptedAESKey = await rsaEncrypt(exportedAESKey, peerPublicKey);
-                    sendToServer("key_exchange", { encrypted_aes_key: encryptedAESKey });
-                    break;
-                    
-                case "key_exchange":
-                    // 接收对方发来的AES密钥
-                    const decryptedAESKeyBase64 = await rsaDecrypt(data.encrypted_aes_key, myPrivateKey);
-                    aesKey = await importAESKey(decryptedAESKeyBase64);
-                    showSystemMessage("🔐 加密通道已建立");
-                    break;
-                    
-                case "key_exchange_complete":
-                    showSystemMessage("🔐 加密通道已建立");
-                    break;
-                    
-                case "message":
-                    // 接收加密消息并解密
-                    if (aesKey) {
-                        try {
-                            const decryptedText = await aesDecrypt(
-                                data.encrypted.ciphertext,
-                                data.encrypted.nonce,
-                                aesKey
-                            );
-                            showMessage(decryptedText, "received");
-                        } catch (error) {
-                            console.error("消息解密失败:", error);
-                            showSystemMessage("⚠️ 收到无法解密的消息");
-                        }
-                    }
-                    break;
-                    
-                case "chat_ended":
-                    showSystemMessage(data.message || "聊天已结束");
-                    resetChat();
-                    break;
-                    
-                case "quit_ack":
-                    showSystemMessage("您已退出聊天");
-                    resetChat();
-                    break;
-                    
-                case "error":
-                    showSystemMessage("❌ " + data.message);
-                    break;
-            }
-        }
-        
-        // ==================== UI操作 ====================
-        
-        function updateConnectionStatus(status, text) {
-            const indicator = document.getElementById("connectionStatus");
-            const statusText = document.getElementById("connectionStatusText");
-            
-            indicator.className = "status-indicator " + status;
-            statusText.textContent = text;
-        }
-        
-        function showChatPanel() {
-            document.getElementById("connectionPanel").classList.add("hidden");
-            document.getElementById("chatPanel").classList.remove("hidden");
-        }
-        
-        function hideChatPanel() {
-            document.getElementById("connectionPanel").classList.remove("hidden");
-            document.getElementById("chatPanel").classList.add("hidden");
-        }
-        
-        function showMessage(text, type) {
-            const container = document.getElementById("messagesContainer");
-            const msgDiv = document.createElement("div");
-            msgDiv.className = `message ${type}`;
-            msgDiv.textContent = text;
-            container.appendChild(msgDiv);
-            container.scrollTop = container.scrollHeight;
-        }
-        
-        function showSystemMessage(text) {
-            const container = document.getElementById("messagesContainer");
-            const msgDiv = document.createElement("div");
-            msgDiv.className = "message system";
-            msgDiv.textContent = text;
-            container.appendChild(msgDiv);
-            container.scrollTop = container.scrollHeight;
-        }
-        
-        function clearMessages() {
-            document.getElementById("messagesContainer").innerHTML = "";
-        }
-        
-        /**
-         * 复制用户ID到剪贴板
-         */
-        function copyUserId() {
-            if (myUserId) {
-                navigator.clipboard.writeText(myUserId).then(() => {
-                    alert("ID已复制到剪贴板！");
-                }).catch(() => {
-                    // 降级方案
-                    const display = document.getElementById("userIdDisplay");
-                    const range = document.createRange();
-                    range.selectNode(display);
-                    window.getSelection().removeAllRanges();
-                    window.getSelection().addRange(range);
-                });
-            }
-        }
-        
-        // ==================== 聊天操作 ====================
-        
-        function sendToServer(type, data = {}) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type, data }));
-            }
-        }
-        
-        /**
-         * 开始聊天 - 向服务器请求与目标用户建立连接
-         */
-        async function startChat() {
-            const targetId = document.getElementById("targetIdInput").value.trim();
-            if (!targetId) {
-                alert("请输入对方的ID");
-                return;
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
             }
             
-            if (targetId === myUserId) {
-                alert("不能与自己聊天");
-                return;
+            const data = await response.json();
+            
+            // 解析不同API的datetime字段
+            let datetimeStr = null;
+            if (data.datetime) {
+              // worldtimeapi 返回格式: "2025-03-15T08:30:45.123456+08:00"
+              datetimeStr = data.datetime;
+            } else if (data.dateTime) {
+              // timeapi 可能使用 dateTime 字段 (需确认，实际timeapi返回也有datetime)
+              datetimeStr = data.dateTime;
+            } else if (data.utc_datetime) {
+              // 备用字段
+              datetimeStr = data.utc_datetime;
             }
             
-            sendToServer("request_chat", { target_id: targetId });
-            document.getElementById("startChatBtn").disabled = true;
-            document.getElementById("startChatBtn").textContent = "连接中...";
+            if (!datetimeStr) {
+              throw new Error('响应中未找到时间字段');
+            }
+            
+            // 解析为Date对象
+            const parsedDate = new Date(datetimeStr);
+            if (isNaN(parsedDate.getTime())) {
+              throw new Error('时间解析无效');
+            }
+            
+            networkDatetime = parsedDate;
+            success = true;
+            console.log(`成功从 ${url} 获取北京时间:`, networkDatetime);
+          } catch (error) {
+            console.warn(`API ${url} 请求失败:`, error.message);
+            // 继续尝试下一个API
+          }
         }
         
-        /**
-         * 发送加密消息
-         */
-        async function sendMessage() {
-            const input = document.getElementById("messageInput");
-            const text = input.value.trim();
-            
-            if (!text) return;
-            if (!aesKey) {
-                showSystemMessage("加密通道尚未建立");
-                return;
-            }
-            
+        // 处理同步结果
+        if (success && networkDatetime) {
+          const requestEndLocal = Date.now();
+          // 粗略网络延迟补偿：取请求开始和结束的中间点作为近似网络时间接收时刻
+          const approximateReceiveLocal = (requestStartLocal + requestEndLocal) / 2;
+          
+          // 计算偏移：网络北京时间对应的毫秒数 - 本地时间近似时刻
+          const networkTimeMs = networkDatetime.getTime();
+          const newOffset = networkTimeMs - approximateReceiveLocal;
+          
+          // 更新全局偏移量
+          offset = newOffset;
+          
+          // 记录成功同步时间 (使用本地时间标记，方便显示)
+          lastSuccessfulSyncTime = Date.now();
+          
+          setSyncStatus('success', '已同步', lastSuccessfulSyncTime);
+          
+          // 存储偏移到sessionStorage (可选，页面刷新后仍保留近似值)
+          try {
+            sessionStorage.setItem('beijing_offset', offset);
+            sessionStorage.setItem('beijing_last_sync', lastSuccessfulSyncTime);
+          } catch (e) {}
+          
+          console.log(`偏移更新: ${offset}ms, 网络时间: ${networkDatetime.toISOString()}`);
+        } else {
+          // 所有API均失败
+          setSyncStatus('error', '同步失败，沿用上次偏移');
+          console.error('所有时间API均请求失败，保留现有偏移量');
+          
+          // 尝试从sessionStorage恢复 (如果之前有保存)
+          if (offset === 0 && lastSuccessfulSyncTime === null) {
             try {
-                // AES加密消息内容
-                const encrypted = await aesEncrypt(text, aesKey);
-                
-                // 显示发送的消息
-                showMessage(text, "sent");
-                
-                // 发送加密数据到服务器（服务器不解密，仅转发）
-                sendToServer("encrypted_message", { encrypted });
-                
-                input.value = "";
-            } catch (error) {
-                console.error("消息加密失败:", error);
-                showSystemMessage("消息加密失败");
+              const savedOffset = sessionStorage.getItem('beijing_offset');
+              const savedLastSync = sessionStorage.getItem('beijing_last_sync');
+              if (savedOffset !== null) {
+                offset = Number(savedOffset);
+                if (!isNaN(offset)) {
+                  console.log('从sessionStorage恢复偏移:', offset);
+                }
+                if (savedLastSync) {
+                  lastSuccessfulSyncTime = Number(savedLastSync);
+                }
+                setSyncStatus('error', '离线模式(使用缓存偏移)', lastSuccessfulSyncTime);
+              } else {
+                setSyncStatus('error', '无可用偏移，使用本地时间');
+              }
+            } catch (e) {}
+          }
+        }
+        
+        isSyncing = false;
+        
+        // 立即刷新一次显示，使新偏移生效
+        updateDisplay();
+      }
+
+      // ---------- 启动显示循环 (高频刷新，保证毫秒级视觉精度) ----------
+      function startDisplayLoop() {
+        if (displayTimer) clearInterval(displayTimer);
+        // 使用setInterval以固定频率刷新，内部基于offset计算准确时间
+        displayTimer = setInterval(() => {
+          updateDisplay();
+        }, DISPLAY_REFRESH_MS);
+      }
+
+      // ---------- 启动定期同步循环 ----------
+      function startSyncLoop() {
+        if (syncTimer) clearInterval(syncTimer);
+        // 立即执行一次同步 (页面加载时)
+        fetchBeijingTimeAndSync();
+        
+        // 每5分钟再次同步
+        syncTimer = setInterval(() => {
+          fetchBeijingTimeAndSync();
+        }, SYNC_INTERVAL);
+      }
+
+      // ---------- 页面卸载清理 ----------
+      function cleanup() {
+        if (displayTimer) {
+          clearInterval(displayTimer);
+          displayTimer = null;
+        }
+        if (syncTimer) {
+          clearInterval(syncTimer);
+          syncTimer = null;
+        }
+      }
+
+      // ---------- 初始化入口 ----------
+      function init() {
+        // 尝试从sessionStorage恢复上次偏移 (提升首次加载体验)
+        try {
+          const savedOffset = sessionStorage.getItem('beijing_offset');
+          const savedLastSync = sessionStorage.getItem('beijing_last_sync');
+          if (savedOffset !== null) {
+            const parsedOffset = Number(savedOffset);
+            if (!isNaN(parsedOffset)) {
+              offset = parsedOffset;
+              console.log('初始化：从缓存恢复偏移', offset);
             }
-        }
-        
-        function handleKeyPress(event) {
-            if (event.key === "Enter") {
-                sendMessage();
+          }
+          if (savedLastSync) {
+            const parsedLastSync = Number(savedLastSync);
+            if (!isNaN(parsedLastSync)) {
+              lastSuccessfulSyncTime = parsedLastSync;
+              setSyncStatus('success', '已同步(缓存)', lastSuccessfulSyncTime);
             }
-        }
+          }
+        } catch (e) {}
         
-        /**
-         * 退出聊天 - 清除所有会话数据
-         */
-        function quitChat() {
-            sendToServer("quit_chat");
-            clearAllSessionData();
-        }
+        // 启动显示循环 (立即开始基于当前offset显示)
+        startDisplayLoop();
         
-        function resetChat() {
-            clearAllSessionData();
-            hideChatPanel();
-            clearMessages();
-            document.getElementById("startChatBtn").disabled = false;
-            document.getElementById("startChatBtn").textContent = "开始聊天";
-            document.getElementById("targetIdInput").value = "";
-        }
+        // 启动同步循环 (会立即调用一次同步，并设置定时器)
+        startSyncLoop();
         
-        /**
-         * 清除会话密钥数据（无痕设计关键）
-         */
-        function clearAllSessionData() {
-            peerId = null;
-            peerPublicKey = null;
-            aesKey = null;
-            // 注意：不清除RSA密钥对，因为可能用于下次聊天
-        }
-        
-        /**
-         * 清除所有加密数据（断开连接时调用）
-         */
-        function clearAllData() {
-            clearAllSessionData();
-            myPrivateKey = null;
-            myPublicKey = null;
-            myPublicKeyPem = null;
-            myUserId = null;
-        }
-        
-        // ==================== 初始化 ====================
-        
-        /**
-         * 页面加载时自动连接并初始化
-         */
-        (async function init() {
-            try {
-                await connectWebSocket();
-                console.log("安全聊天客户端已就绪");
-            } catch (error) {
-                console.error("初始化失败:", error);
-                updateConnectionStatus("offline", "连接失败，请刷新页面重试");
-            }
-        })();
-        
-        // 页面关闭前清理
-        window.addEventListener("beforeunload", () => {
-            if (ws) {
-                ws.close();
-            }
-            clearAllData();
-        });
-    </script>
+        // 监听页面卸载事件，清理定时器
+        window.addEventListener('beforeunload', cleanup);
+      }
+
+      // 启动一切
+      init();
+    })();
+  </script>
 </body>
 </html>
