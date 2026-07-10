@@ -2,10 +2,10 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>北京时间 · 毫秒同步</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>经典扫雷 · Windows 风格</title>
   <style>
-    /* ----- 全局重置与字体 ----- */
+    /* ========== 全局重置与字体 ========== */
     * {
       margin: 0;
       padding: 0;
@@ -13,462 +13,794 @@
     }
 
     body {
-      min-height: 100vh;
+      background: #008080; /* 经典Win95桌面色 */
       display: flex;
-      align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at 20% 30%, #1a1f2e, #0b0d14);
-      font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
-      padding: 1.5rem;
-      transition: background 0.2s ease;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Microsoft YaHei', 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+      padding: 20px;
+      margin: 0;
     }
 
-    /* ----- 主卡片：玻璃质感容器 ----- */
-    .clock-container {
-      width: 100%;
-      max-width: 700px;
-      background: rgba(18, 22, 33, 0.7);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border-radius: 3.5rem;
-      padding: 3rem 2rem;
-      box-shadow: 0 30px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    /* 主游戏容器：像素风窗口 */
+    .game-container {
+      background: #c0c0c0;
+      padding: 8px;
+      border: 3px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      box-shadow: 2px 2px 0 #000000;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2rem;
-      transition: all 0.3s ease;
+      max-width: 600px;
+      width: fit-content;
+      margin: auto;
     }
 
-    /* ----- 时间显示区域 ----- */
-    .time-display {
-      font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-      font-size: clamp(3.5rem, 15vw, 7rem);
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      color: #eef5ff;
-      text-shadow: 0 0 20px rgba(77, 150, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.6);
-      background: linear-gradient(180deg, #ffffff 0%, #c8d9ff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      filter: drop-shadow(0 0 12px #3f6ec6);
-      line-height: 1.2;
-      text-align: center;
-      word-break: break-word;
-    }
-
-    /* 毫秒部分可选显示（保持内部精度，视觉可隐藏） */
-    .milliseconds {
-      font-size: 0.35em;
-      vertical-align: super;
-      margin-left: 0.15em;
-      color: #9bb8ff;
-      text-shadow: 0 0 8px #1e3b8a;
-      letter-spacing: 0;
-    }
-
-    /* ----- 状态栏 ----- */
-    .status-area {
+    /* 标题栏 */
+    .title-bar {
+      background: #000080;
+      color: white;
+      font-weight: bold;
+      padding: 4px 6px;
+      font-size: 1rem;
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    /* 状态面板：雷数、重置按钮、计时器 */
+    .status-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      background: #c0c0c0;
+      padding: 6px 0;
+      gap: 6px;
       flex-wrap: wrap;
+    }
+
+    .counter {
+      background: black;
+      color: red;
+      font-family: 'Courier New', monospace;
+      font-size: 1.8rem;
+      font-weight: bold;
+      padding: 2px 8px;
+      border: 3px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+      min-width: 70px;
+      text-align: center;
+      line-height: 1.2;
+      letter-spacing: 1px;
+    }
+
+    .reset-btn {
+      background: #c0c0c0;
+      border: 3px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      font-size: 1.8rem;
+      width: 50px;
+      height: 50px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 1.2rem 2rem;
-      font-size: 0.95rem;
-      color: #b4c2e0;
-      background: rgba(12, 15, 24, 0.5);
-      padding: 0.9rem 2rem;
-      border-radius: 3rem;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      width: fit-content;
-      max-width: 100%;
+      cursor: pointer;
+      font-weight: bold;
+      color: black;
+      transition: all 0.05s ease;
+      user-select: none;
+      touch-action: manipulation;
     }
 
-    .sync-indicator {
+    .reset-btn:active {
+      border-color: #808080 #ffffff #ffffff #808080;
+      transform: scale(0.96);
+    }
+
+    /* 网格容器 */
+    .grid-wrapper {
+      background: #c0c0c0;
+      border: 3px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+      padding: 4px;
+      margin: 8px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 1px;
+      background: #808080;
+      border: 1px solid #808080;
+      width: 100%;
+    }
+
+    /* 单元格样式 */
+    .cell {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      min-width: 30px;
+      max-width: 50px;
+      background: #c0c0c0;
+      border: 3px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: center;
+      font-weight: bold;
+      font-family: 'Arial', sans-serif;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      font-size: clamp(1rem, 4vw, 1.5rem);
+      transition: none;
+      box-sizing: content-box;
     }
 
-    .sync-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #2ecc71;
-      box-shadow: 0 0 12px #2ecc71;
-      transition: background 0.2s, box-shadow 0.2s;
+    /* 已挖开的格子 */
+    .cell.revealed {
+      border: 1px solid #808080;
+      background: #c0c0c0;
+      border-color: #808080;
     }
 
-    .sync-dot.warning {
-      background: #f39c12;
-      box-shadow: 0 0 12px #f39c12;
+    /* 数字颜色仿Windows */
+    .color1 { color: #0000ff; } /* 1 蓝色 */
+    .color2 { color: #008000; } /* 2 绿色 */
+    .color3 { color: #ff0000; } /* 3 红色 */
+    .color4 { color: #000080; } /* 4 深蓝 */
+    .color5 { color: #800000; } /* 5 深红 */
+    .color6 { color: #008080; } /* 6 青色 */
+    .color7 { color: #000000; } /* 7 黑色 */
+    .color8 { color: #808080; } /* 8 灰色 */
+
+    /* 旗子与地雷使用Unicode */
+    .flag-icon, .mine-icon {
+      font-size: 1.2rem;
+      line-height: 1;
     }
 
-    .sync-dot.error {
-      background: #e74c3c;
-      box-shadow: 0 0 12px #e74c3c;
+    /* 积分显示 */
+    .score-area {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #808080 #ffffff #ffffff #808080;
+      padding: 4px 12px;
+      margin-top: 4px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
     }
 
-    .last-sync-text {
-      font-weight: 400;
-      opacity: 0.9;
+    .score-value {
+      background: black;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      padding: 2px 10px;
+      font-size: 1.2rem;
+      border: 1px inset #808080;
     }
 
-    .offset-info {
-      font-family: monospace;
-      background: rgba(0, 0, 0, 0.35);
-      padding: 0.25rem 1rem;
-      border-radius: 2rem;
-      font-size: 0.85rem;
-      color: #ccd9ff;
+    /* 触控模式提示（小屏显示切换按钮） */
+    .touch-mode-toggle {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 0.8rem;
+      background: #c0c0c0;
+      padding: 2px 8px;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      margin-left: auto;
     }
 
-    /* 移动端优化 */
+    .mode-btn {
+      background: #c0c0c0;
+      border: 2px solid;
+      border-color: #ffffff #808080 #808080 #ffffff;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-weight: bold;
+      touch-action: manipulation;
+    }
+
+    .mode-btn.active-mode {
+      border-color: #808080 #ffffff #ffffff #808080;
+      background: #d4d0c8;
+    }
+
     @media (max-width: 500px) {
-      .clock-container {
-        padding: 2.5rem 1.2rem;
-        border-radius: 2.5rem;
+      .cell {
+        min-width: 30px;
+        max-width: 45px;
+        font-size: 1rem;
       }
-
-      .status-area {
-        flex-direction: column;
-        gap: 0.8rem;
-        text-align: center;
-        padding: 0.8rem 1.5rem;
-      }
-
-      .time-display {
-        font-size: clamp(3rem, 12vw, 5rem);
+      .counter {
+        font-size: 1.4rem;
+        min-width: 55px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="clock-container">
-    <!-- 时间展示区（可内部添加毫秒显示，但默认仅显示到秒，保持简洁） -->
-    <div id="clockDisplay" class="time-display" aria-live="polite" aria-label="北京时间">
-      --:--:--
-    </div>
+<div class="game-container">
+  <div class="title-bar">💣 经典扫雷 · Windows 风格</div>
 
-    <!-- 状态与同步信息 -->
-    <div class="status-area">
-      <div class="sync-indicator">
-        <span id="syncDot" class="sync-dot" title="同步状态"></span>
-        <span id="syncStatusText">同步中…</span>
-      </div>
-      <div class="last-sync-text" id="lastSyncLabel">上次同步：--</div>
-      <div class="offset-info" id="offsetDisplay">偏移 0ms</div>
-    </div>
+  <!-- 状态栏：剩余雷数、重置、计时 -->
+  <div class="status-panel">
+    <div class="counter" id="mine-counter">010</div>
+    <button class="reset-btn" id="reset-button" title="新游戏">😊</button>
+    <div class="counter" id="timer-display">000</div>
   </div>
 
-  <script>
-    (function() {
-      "use strict";
+  <!-- 网格区域 -->
+  <div class="grid-wrapper">
+    <div class="grid" id="minesweeper-grid"></div>
+  </div>
 
-      // ---------- DOM 元素 ----------
-      const clockEl = document.getElementById('clockDisplay');
-      const syncDotEl = document.getElementById('syncDot');
-      const syncStatusTextEl = document.getElementById('syncStatusText');
-      const lastSyncLabelEl = document.getElementById('lastSyncLabel');
-      const offsetDisplayEl = document.getElementById('offsetDisplay');
+  <!-- 触控辅助：右键模式切换（移动端友好） -->
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 4px;">
+    <div class="score-area">
+      <span>⭐ 积分</span>
+      <span class="score-value" id="score-display">0</span>
+    </div>
+    <div class="touch-mode-toggle" id="touch-toggle-area">
+      <span style="margin-right: 4px;">🖐️</span>
+      <button class="mode-btn active-mode" id="mode-left-btn">左键</button>
+      <button class="mode-btn" id="mode-right-btn">右键</button>
+    </div>
+  </div>
+  <div style="font-size:0.7rem; color:#222; margin-top:2px;">触屏：点击格子=当前模式 | 长按0.5秒=右键标记</div>
+</div>
 
-      // ---------- 核心变量 ----------
-      // offset: 本地时间与北京时间的差值 (毫秒)  北京时间 = Date.now() + offset
-      let offset = 0;                 
-      // 定时器ID
-      let displayTimer = null;
-      let syncTimer = null;
-      // 同步间隔：5分钟 (300,000ms)
-      const SYNC_INTERVAL = 300000;   
-      // 显示刷新间隔：为了视觉平滑且内部毫秒校正，使用约30ms刷新 (≈33.3fps)
-      const DISPLAY_REFRESH_MS = 30;  
+<script>
+  (function() {
+    /* ========== 游戏配置 ========== */
+    const ROWS = 9;
+    const COLS = 9;
+    const TOTAL_MINES = 10;
 
-      // 网络请求超时时间 (毫秒)
-      const FETCH_TIMEOUT = 6000;
+    /* ========== DOM 元素 ========== */
+    const gridEl = document.getElementById('minesweeper-grid');
+    const mineCounterEl = document.getElementById('mine-counter');
+    const timerDisplayEl = document.getElementById('timer-display');
+    const resetButton = document.getElementById('reset-button');
+    const scoreDisplayEl = document.getElementById('score-display');
+    const modeLeftBtn = document.getElementById('mode-left-btn');
+    const modeRightBtn = document.getElementById('mode-right-btn');
 
-      // 记录上次成功同步的时间戳 (用于显示)
-      let lastSuccessfulSyncTime = null;
-      // 标记是否正在进行同步 (防止并发)
-      let isSyncing = false;
+    /* ========== 游戏状态变量 ========== */
+    let board = [];                 // 二维数组: { mine, revealed, flagged, adjacentMines }
+    let gameActive = false;
+    let gameOver = false;
+    let gameWin = false;
+    let minesPlaced = false;       // 首次点击后布雷
+    let flagsPlaced = 0;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let firstClickDone = false;
 
-      // ---------- 工具函数：格式化时间 ----------
-      function formatBeijingTime(date) {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        // 毫秒部分用于内部展示（可选）但主要显示HH:MM:SS
-        return `${hours}:${minutes}:${seconds}`;
+    // 触控辅助：当前触摸模式 'left' 或 'right'
+    let touchMode = 'left';        // left: 点击视为左键； right: 点击视为右键
+
+    // 长按检测
+    let longPressTimer = null;
+    let touchStartRow = null;
+    let touchStartCol = null;
+    const LONG_PRESS_DURATION = 500;
+
+    /* ========== 积分管理 (localStorage) ========== */
+    const STORAGE_KEY = 'minesweeper_score';
+
+    function getScore() {
+      try {
+        const val = localStorage.getItem(STORAGE_KEY);
+        return val ? parseInt(val, 10) : 0;
+      } catch (e) {
+        return 0;
       }
+    }
 
-      // 获取完整毫秒字符串 (用于显示细微偏移，这里仅内部使用，也可附加显示)
-      function getMillisecondsStr(date) {
-        return String(date.getMilliseconds()).padStart(3, '0');
+    function updateScore(delta) {
+      try {
+        const current = getScore();
+        const newScore = Math.max(0, current + delta); // 不低于0
+        localStorage.setItem(STORAGE_KEY, newScore);
+        scoreDisplayEl.textContent = newScore;
+      } catch (e) {
+        console.warn('积分更新失败', e);
       }
+    }
 
-      // ---------- 更新UI显示 ----------
-      function updateDisplay() {
-        if (!clockEl) return;
-        
-        // 基于当前本地时间 + 偏移量计算北京时间
-        const nowBeijing = new Date(Date.now() + offset);
-        const timeString = formatBeijingTime(nowBeijing);
-        
-        // 可选：在秒后面附加毫秒显示 (为保持清晰，使用小字号span)
-        // 这里动态构建HTML以包含毫秒，但不影响主视觉清晰度
-        const ms = getMillisecondsStr(nowBeijing);
-        clockEl.innerHTML = `${timeString}<span class="milliseconds">.${ms}</span>`;
-        
-        // 更新偏移显示
-        if (offsetDisplayEl) {
-          const offsetMs = offset;
-          offsetDisplayEl.textContent = `偏移 ${offsetMs >= 0 ? '+' : ''}${offsetMs}ms`;
+    function refreshScoreDisplay() {
+      scoreDisplayEl.textContent = getScore();
+    }
+
+    /* ========== 工具函数 ========== */
+    function formatNumber(num, digits = 3) {
+      return String(num).padStart(digits, '0').slice(0, digits);
+    }
+
+    function updateMineCounter() {
+      const remaining = TOTAL_MINES - flagsPlaced;
+      mineCounterEl.textContent = formatNumber(remaining, 3);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function startTimer() {
+      if (timerInterval) stopTimer();
+      secondsElapsed = 0;
+      timerDisplayEl.textContent = formatNumber(0, 3);
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerDisplayEl.textContent = formatNumber(secondsElapsed, 3);
+      }, 1000);
+    }
+
+    /* ========== 初始化空棋盘 ========== */
+    function createEmptyBoard() {
+      return Array(ROWS).fill().map(() => Array(COLS).fill().map(() => ({
+        mine: false,
+        revealed: false,
+        flagged: false,
+        adjacentMines: 0
+      })));
+    }
+
+    /* ========== 随机布雷 (首次点击安全) ========== */
+    function placeMines(excludeRow, excludeCol) {
+      // 重置所有雷标记
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          board[r][c].mine = false;
         }
       }
 
-      // ---------- 更新状态UI (同步成功/失败/进行中) ----------
-      function setSyncStatus(status, message, lastSyncDate = null) {
-        if (!syncDotEl || !syncStatusTextEl) return;
-        
-        // 移除所有状态类
-        syncDotEl.classList.remove('warning', 'error');
-        
-        switch (status) {
-          case 'success':
-            syncDotEl.classList.add('success'); // 默认绿色
-            syncStatusTextEl.textContent = message || '已同步';
-            break;
-          case 'syncing':
-            syncDotEl.classList.add('warning');
-            syncStatusTextEl.textContent = message || '同步中…';
-            break;
-          case 'error':
-            syncDotEl.classList.add('error');
-            syncStatusTextEl.textContent = message || '同步失败';
-            break;
-          default:
-            syncStatusTextEl.textContent = message || '未知';
-        }
-        
-        // 更新上次同步时间显示
-        if (lastSyncLabelEl) {
-          if (lastSuccessfulSyncTime) {
-            const date = new Date(lastSuccessfulSyncTime);
-            const timeStr = date.toLocaleTimeString('zh-CN', { hour12: false });
-            lastSyncLabelEl.textContent = `上次同步：${timeStr}`;
-          } else if (lastSyncDate) {
-            const date = new Date(lastSyncDate);
-            const timeStr = date.toLocaleTimeString('zh-CN', { hour12: false });
-            lastSyncLabelEl.textContent = `上次同步：${timeStr}`;
-          } else {
-            lastSyncLabelEl.textContent = `上次同步：--`;
+      // 计算排除区域：点击位置及其周围8格
+      const safeZone = new Set();
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = excludeRow + dr;
+          const nc = excludeCol + dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+            safeZone.add(`${nr},${nc}`);
           }
         }
       }
 
-      // ---------- 核心：从网络API获取北京时间并计算偏移 ----------
-      async function fetchBeijingTimeAndSync() {
-        if (isSyncing) {
-          console.log('同步正在进行中，跳过本次请求');
+      // 生成所有可能位置并排除安全区
+      const candidates = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (!safeZone.has(`${r},${c}`)) {
+            candidates.push({ r, c });
+          }
+        }
+      }
+
+      // 随机挑选 TOTAL_MINES 个位置
+      const shuffled = candidates.sort(() => Math.random() - 0.5);
+      const minesToPlace = Math.min(TOTAL_MINES, shuffled.length);
+      for (let i = 0; i < minesToPlace; i++) {
+        const { r, c } = shuffled[i];
+        board[r][c].mine = true;
+      }
+
+      // 计算相邻雷数
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c].mine) {
+            board[r][c].adjacentMines = -1;
+          } else {
+            let count = 0;
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc].mine) {
+                  count++;
+                }
+              }
+            }
+            board[r][c].adjacentMines = count;
+          }
+        }
+      }
+      minesPlaced = true;
+    }
+
+    /* ========== 递归展开空白区域 ========== */
+    function expandEmptyCells(row, col) {
+      const queue = [{ r: row, c: col }];
+      const visited = new Set();
+      
+      while (queue.length > 0) {
+        const { r, c } = queue.shift();
+        const key = `${r},${c}`;
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        const cell = board[r][c];
+        if (cell.revealed || cell.flagged || cell.mine) continue;
+
+        // 揭开当前格
+        cell.revealed = true;
+
+        // 如果是数字，不继续展开
+        if (cell.adjacentMines > 0) continue;
+
+        // 空白格：将周围未揭开且非雷非旗的格子加入队列
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (dr === 0 && dc === 0) continue;
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+              const neighbor = board[nr][nc];
+              if (!neighbor.revealed && !neighbor.flagged && !neighbor.mine) {
+                queue.push({ r: nr, c: nc });
+              }
+            }
+          }
+        }
+      }
+    }
+
+    /* ========== 检查胜利条件 ========== */
+    function checkVictory() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = board[r][c];
+          // 胜利：所有非雷格子都已揭开
+          if (!cell.mine && !cell.revealed) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function handleVictory() {
+      gameActive = false;
+      gameOver = true;
+      gameWin = true;
+      stopTimer();
+      // 自动标记所有雷为旗子（美观）
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c].mine && !board[r][c].flagged) {
+            board[r][c].flagged = true;
+            flagsPlaced++;
+          }
+        }
+      }
+      updateMineCounter();
+      renderGrid();
+      updateScore(1);
+      resetButton.textContent = '😎';
+      alert('🎉 恭喜！你赢了！积分 +1');
+    }
+
+    function handleGameOver(clickedRow, clickedCol) {
+      gameActive = false;
+      gameOver = true;
+      gameWin = false;
+      stopTimer();
+      // 显示所有雷
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c].mine) {
+            board[r][c].revealed = true;
+          }
+        }
+      }
+      renderGrid();
+      updateScore(-1);
+      resetButton.textContent = '😵';
+      alert('💥 踩到雷了！游戏结束，积分 -1');
+    }
+
+    /* ========== 左键点击逻辑 ========== */
+    function leftClick(row, col) {
+      if (!gameActive || gameOver) return;
+      const cell = board[row][col];
+      if (cell.revealed || cell.flagged) return;
+
+      // 首次点击处理：布雷并开始计时
+      if (!minesPlaced) {
+        placeMines(row, col);
+        startTimer();
+        firstClickDone = true;
+      }
+
+      if (cell.mine) {
+        handleGameOver(row, col);
+        return;
+      }
+
+      // 揭开当前格
+      if (cell.adjacentMines === 0) {
+        expandEmptyCells(row, col);
+      } else {
+        cell.revealed = true;
+      }
+
+      renderGrid();
+
+      if (checkVictory()) {
+        handleVictory();
+      }
+    }
+
+    /* ========== 右键/标记逻辑 ========== */
+    function rightClick(row, col) {
+      if (!gameActive || gameOver) return;
+      const cell = board[row][col];
+      if (cell.revealed) return;
+
+      // 如果还未布雷，不允许标记（但可以允许，不影响）
+      if (!minesPlaced) {
+        // 首次点击前标记：允许但不影响布雷逻辑
+      }
+
+      if (cell.flagged) {
+        cell.flagged = false;
+        flagsPlaced--;
+      } else {
+        // 不能超过总雷数（但允许超过，只是计数器负值？传统扫雷限制标记数不超过总雷数）
+        if (flagsPlaced >= TOTAL_MINES) {
+          // 可选：禁止标记或允许，这里遵循传统：不允许再标记
           return;
         }
-        
-        isSyncing = true;
-        setSyncStatus('syncing', '同步中…');
-        
-        // 记录请求开始时的本地时间 (用于计算网络耗时的一半作为粗略补偿，可选)
-        const requestStartLocal = Date.now();
-        
-        // 使用两个备选API提高稳定性 (优先使用worldtimeapi，失败后尝试timeapi)
-        const apiUrls = [
-          'https://worldtimeapi.org/api/timezone/Asia/Shanghai',
-          'https://timeapi.io/api/Time/current/zone?timeZone=Asia/Shanghai'
-        ];
-        
-        let success = false;
-        let networkDatetime = null; // 存储从API解析到的北京时间的Date对象
-        
-        // 尝试每个API
-        for (const url of apiUrls) {
-          if (success) break;
-          
-          try {
-            // 创建可中断的fetch (超时控制)
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-            
-            const response = await fetch(url, { 
-              signal: controller.signal,
-              cache: 'no-store' 
-            });
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            // 解析不同API的datetime字段
-            let datetimeStr = null;
-            if (data.datetime) {
-              // worldtimeapi 返回格式: "2025-03-15T08:30:45.123456+08:00"
-              datetimeStr = data.datetime;
-            } else if (data.dateTime) {
-              // timeapi 可能使用 dateTime 字段 (需确认，实际timeapi返回也有datetime)
-              datetimeStr = data.dateTime;
-            } else if (data.utc_datetime) {
-              // 备用字段
-              datetimeStr = data.utc_datetime;
-            }
-            
-            if (!datetimeStr) {
-              throw new Error('响应中未找到时间字段');
-            }
-            
-            // 解析为Date对象
-            const parsedDate = new Date(datetimeStr);
-            if (isNaN(parsedDate.getTime())) {
-              throw new Error('时间解析无效');
-            }
-            
-            networkDatetime = parsedDate;
-            success = true;
-            console.log(`成功从 ${url} 获取北京时间:`, networkDatetime);
-          } catch (error) {
-            console.warn(`API ${url} 请求失败:`, error.message);
-            // 继续尝试下一个API
+        cell.flagged = true;
+        flagsPlaced++;
+      }
+
+      updateMineCounter();
+      renderGrid();
+
+      // 标记后检查胜利（可能所有雷已正确标记且其他格子已开）
+      if (checkVictory()) {
+        handleVictory();
+      }
+    }
+
+    /* ========== 双击/同时点击：快速展开 ========== */
+    function chordClick(row, col) {
+      if (!gameActive || gameOver) return;
+      const cell = board[row][col];
+      if (!cell.revealed || cell.adjacentMines <= 0) return;
+
+      // 计算周围旗子数量
+      let flagCount = 0;
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = row + dr, nc = col + dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc].flagged) {
+            flagCount++;
           }
         }
-        
-        // 处理同步结果
-        if (success && networkDatetime) {
-          const requestEndLocal = Date.now();
-          // 粗略网络延迟补偿：取请求开始和结束的中间点作为近似网络时间接收时刻
-          const approximateReceiveLocal = (requestStartLocal + requestEndLocal) / 2;
-          
-          // 计算偏移：网络北京时间对应的毫秒数 - 本地时间近似时刻
-          const networkTimeMs = networkDatetime.getTime();
-          const newOffset = networkTimeMs - approximateReceiveLocal;
-          
-          // 更新全局偏移量
-          offset = newOffset;
-          
-          // 记录成功同步时间 (使用本地时间标记，方便显示)
-          lastSuccessfulSyncTime = Date.now();
-          
-          setSyncStatus('success', '已同步', lastSuccessfulSyncTime);
-          
-          // 存储偏移到sessionStorage (可选，页面刷新后仍保留近似值)
-          try {
-            sessionStorage.setItem('beijing_offset', offset);
-            sessionStorage.setItem('beijing_last_sync', lastSuccessfulSyncTime);
-          } catch (e) {}
-          
-          console.log(`偏移更新: ${offset}ms, 网络时间: ${networkDatetime.toISOString()}`);
-        } else {
-          // 所有API均失败
-          setSyncStatus('error', '同步失败，沿用上次偏移');
-          console.error('所有时间API均请求失败，保留现有偏移量');
-          
-          // 尝试从sessionStorage恢复 (如果之前有保存)
-          if (offset === 0 && lastSuccessfulSyncTime === null) {
-            try {
-              const savedOffset = sessionStorage.getItem('beijing_offset');
-              const savedLastSync = sessionStorage.getItem('beijing_last_sync');
-              if (savedOffset !== null) {
-                offset = Number(savedOffset);
-                if (!isNaN(offset)) {
-                  console.log('从sessionStorage恢复偏移:', offset);
-                }
-                if (savedLastSync) {
-                  lastSuccessfulSyncTime = Number(savedLastSync);
-                }
-                setSyncStatus('error', '离线模式(使用缓存偏移)', lastSuccessfulSyncTime);
+      }
+
+      if (flagCount !== cell.adjacentMines) return; // 不匹配不操作
+
+      // 展开周围未标记且未揭开的格子
+      let hitMine = false;
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          if (dr === 0 && dc === 0) continue;
+          const nr = row + dr, nc = col + dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+            const neighbor = board[nr][nc];
+            if (neighbor.revealed || neighbor.flagged) continue;
+            if (neighbor.mine) {
+              hitMine = true;
+              neighbor.revealed = true; // 显示爆炸位置
+            } else {
+              // 安全格子，递归展开
+              if (neighbor.adjacentMines === 0) {
+                expandEmptyCells(nr, nc);
               } else {
-                setSyncStatus('error', '无可用偏移，使用本地时间');
+                neighbor.revealed = true;
               }
-            } catch (e) {}
-          }
-        }
-        
-        isSyncing = false;
-        
-        // 立即刷新一次显示，使新偏移生效
-        updateDisplay();
-      }
-
-      // ---------- 启动显示循环 (高频刷新，保证毫秒级视觉精度) ----------
-      function startDisplayLoop() {
-        if (displayTimer) clearInterval(displayTimer);
-        // 使用setInterval以固定频率刷新，内部基于offset计算准确时间
-        displayTimer = setInterval(() => {
-          updateDisplay();
-        }, DISPLAY_REFRESH_MS);
-      }
-
-      // ---------- 启动定期同步循环 ----------
-      function startSyncLoop() {
-        if (syncTimer) clearInterval(syncTimer);
-        // 立即执行一次同步 (页面加载时)
-        fetchBeijingTimeAndSync();
-        
-        // 每5分钟再次同步
-        syncTimer = setInterval(() => {
-          fetchBeijingTimeAndSync();
-        }, SYNC_INTERVAL);
-      }
-
-      // ---------- 页面卸载清理 ----------
-      function cleanup() {
-        if (displayTimer) {
-          clearInterval(displayTimer);
-          displayTimer = null;
-        }
-        if (syncTimer) {
-          clearInterval(syncTimer);
-          syncTimer = null;
-        }
-      }
-
-      // ---------- 初始化入口 ----------
-      function init() {
-        // 尝试从sessionStorage恢复上次偏移 (提升首次加载体验)
-        try {
-          const savedOffset = sessionStorage.getItem('beijing_offset');
-          const savedLastSync = sessionStorage.getItem('beijing_last_sync');
-          if (savedOffset !== null) {
-            const parsedOffset = Number(savedOffset);
-            if (!isNaN(parsedOffset)) {
-              offset = parsedOffset;
-              console.log('初始化：从缓存恢复偏移', offset);
             }
           }
-          if (savedLastSync) {
-            const parsedLastSync = Number(savedLastSync);
-            if (!isNaN(parsedLastSync)) {
-              lastSuccessfulSyncTime = parsedLastSync;
-              setSyncStatus('success', '已同步(缓存)', lastSuccessfulSyncTime);
-            }
-          }
-        } catch (e) {}
-        
-        // 启动显示循环 (立即开始基于当前offset显示)
-        startDisplayLoop();
-        
-        // 启动同步循环 (会立即调用一次同步，并设置定时器)
-        startSyncLoop();
-        
-        // 监听页面卸载事件，清理定时器
-        window.addEventListener('beforeunload', cleanup);
+        }
       }
 
-      // 启动一切
-      init();
-    })();
-  </script>
+      if (hitMine) {
+        handleGameOver(row, col);
+      } else {
+        renderGrid();
+        if (checkVictory()) {
+          handleVictory();
+        }
+      }
+    }
+
+    /* ========== 渲染网格 ========== */
+    function renderGrid() {
+      gridEl.innerHTML = '';
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = board[r][c];
+          const cellDiv = document.createElement('div');
+          cellDiv.className = 'cell';
+          cellDiv.dataset.row = r;
+          cellDiv.dataset.col = c;
+
+          if (cell.revealed) {
+            cellDiv.classList.add('revealed');
+            if (cell.mine) {
+              cellDiv.innerHTML = '<span class="mine-icon">💣</span>';
+            } else if (cell.adjacentMines > 0) {
+              cellDiv.textContent = cell.adjacentMines;
+              cellDiv.classList.add(`color${cell.adjacentMines}`);
+            }
+          } else if (cell.flagged) {
+            cellDiv.innerHTML = '<span class="flag-icon">🚩</span>';
+          }
+
+          gridEl.appendChild(cellDiv);
+        }
+      }
+    }
+
+    /* ========== 重置游戏 ========== */
+    function resetGame() {
+      stopTimer();
+      board = createEmptyBoard();
+      gameActive = true;
+      gameOver = false;
+      gameWin = false;
+      minesPlaced = false;
+      flagsPlaced = 0;
+      secondsElapsed = 0;
+      firstClickDone = false;
+      timerDisplayEl.textContent = formatNumber(0, 3);
+      updateMineCounter();
+      resetButton.textContent = '😊';
+      renderGrid();
+    }
+
+    /* ========== 事件绑定 ========== */
+    function setupEventListeners() {
+      // 鼠标事件（桌面端）
+      gridEl.addEventListener('click', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const row = parseInt(cell.dataset.row, 10);
+        const col = parseInt(cell.dataset.col, 10);
+        if (isNaN(row) || isNaN(col)) return;
+        e.preventDefault();
+        leftClick(row, col);
+      });
+
+      gridEl.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const row = parseInt(cell.dataset.row, 10);
+        const col = parseInt(cell.dataset.col, 10);
+        if (isNaN(row) || isNaN(col)) return;
+        rightClick(row, col);
+      });
+
+      // 双击/同时左右键：通过辅助检测（鼠标中键或同时按下？简化：双击数字格作为chord）
+      gridEl.addEventListener('dblclick', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const row = parseInt(cell.dataset.row, 10);
+        const col = parseInt(cell.dataset.col, 10);
+        if (isNaN(row) || isNaN(col)) return;
+        e.preventDefault();
+        chordClick(row, col);
+      });
+
+      // 触控事件
+      gridEl.addEventListener('touchstart', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const row = parseInt(cell.dataset.row, 10);
+        const col = parseInt(cell.dataset.col, 10);
+        if (isNaN(row) || isNaN(col)) return;
+        e.preventDefault();
+
+        touchStartRow = row;
+        touchStartCol = col;
+
+        // 启动长按定时器
+        if (longPressTimer) clearTimeout(longPressTimer);
+        longPressTimer = setTimeout(() => {
+          if (touchStartRow === row && touchStartCol === col) {
+            // 长按触发右键
+            rightClick(row, col);
+            // 重置长按状态
+            touchStartRow = null;
+            touchStartCol = null;
+            longPressTimer = null;
+          }
+        }, LONG_PRESS_DURATION);
+      });
+
+      gridEl.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+
+        if (touchStartRow !== null && touchStartCol !== null) {
+          const row = touchStartRow;
+          const col = touchStartCol;
+          touchStartRow = null;
+          touchStartCol = null;
+
+          // 根据当前触摸模式决定行为
+          if (touchMode === 'left') {
+            leftClick(row, col);
+          } else if (touchMode === 'right') {
+            rightClick(row, col);
+          }
+        }
+      });
+
+      gridEl.addEventListener('touchmove', (e) => {
+        // 移动取消长按
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+        touchStartRow = null;
+        touchStartCol = null;
+      });
+
+      // 重置按钮
+      resetButton.addEventListener('click', resetGame);
+      resetButton.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        resetGame();
+      });
+
+      // 触摸模式切换
+      modeLeftBtn.addEventListener('click', () => {
+        touchMode = 'left';
+        modeLeftBtn.classList.add('active-mode');
+        modeRightBtn.classList.remove('active-mode');
+      });
+      modeRightBtn.addEventListener('click', () => {
+        touchMode = 'right';
+        modeRightBtn.classList.add('active-mode');
+        modeLeftBtn.classList.remove('active-mode');
+      });
+    }
+
+    /* ========== 初始化 ========== */
+    function init() {
+      refreshScoreDisplay();
+      resetGame();
+      setupEventListeners();
+    }
+
+    // 启动一切
+    init();
+  })();
+</script>
 </body>
 </html>
